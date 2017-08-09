@@ -59,7 +59,7 @@ class App(Frame):
 		self.snake.moveSnake()
 		
 		for a in range(0,len(self.snake.body)-1):	#the snake crossed itself
-			if(self.snake.body[a].x==self.snake.x and self.snake.body[a].y==self.snake.y):
+			if(self.snake.body[a].isOccupying(self.snake.x,self.snake.y)):
 				self.endGame()
 				break
 
@@ -67,7 +67,7 @@ class App(Frame):
 			self.snake.y<0 or self.snake.y>RES-1):	#out of bounds
 			self.endGame()
 			
-		if(self.snake.x==self.food.x and self.snake.y==self.food.y):	#the snake ate food
+		if(self.snake.isOccupying(self.food.x,self.food.y)):	#the snake ate food
 			self.food.eat(self.snake)
 		
 		if(self.score==
@@ -82,29 +82,27 @@ class Cell(object):
 	def __init__(self,canvas,x,y):
 		self.x=x
 		self.y=y
-		self.canvas=canvas
-		self.color="blue"
 		self.height=HEIGHT/RES
 		self.width=WIDTH/RES
-		self.rect=canvas.create_rectangle(self.getXPos(self.x),self.getYPos(self.y),
-			self.getXPos(self.x)+self.width,self.getYPos(self.y)+self.height)
+		(x,y)=self.getPos(x,y)
+		self.canvas=canvas
+		self.color="blue"
+		self.rect=canvas.create_rectangle(x,y,x+self.width,y+self.height)
 		canvas.itemconfig(self.rect,fill=self.color)
 		return
 		
 	def move(self,dX,dY):
 		self.x+=dX
 		self.y+=dY
-		self.canvas.move(self.rect,dX*(WIDTH/RES),dY*(HEIGHT/RES))
+		(dX,dY)=self.getPos(dX,dY)
+		self.canvas.move(self.rect,dX,dY)
 		return
 		
-	def getXPos(self,cell):
-		return cell*(WIDTH/RES)
+	def getPos(self,cellX,cellY):
+		return(cellX*(WIDTH/RES),cellY*(HEIGHT/RES))
 		
-	def getYPos(self,cell):
-		return cell*(HEIGHT/RES)
-		
-	def isOccupying(x,y):
-		if(x==self.getXPos(self.x) and y==self.getYPos(self.y)):
+	def isOccupying(self,x,y):
+		if(x==self.x and y==self.y):
 			return True
 		else:
 			return False
@@ -231,11 +229,11 @@ class Food(Cell):
 			x=randint(0,RES-1)
 			y=randint(0,RES-1)
 			
-			if(snake.x==x and snake.y==y):
+			if(snake.isOccupying(x,y)):
 				unoccupied=False
 			
 			for a in range(0,len(snake.body)):
-				if(snake.body[a].x==x and snake.body[a].y==y):
+				if(snake.body[a].isOccupying(x,y)):
 					unoccupied=False
 					
 			if(unoccupied==True):
