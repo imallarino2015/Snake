@@ -29,11 +29,12 @@ KEY_START=' '
 class App(Frame):
 	def __init__(self,master=None):
 		super(App,self).__init__()
+		self.master.title("Snake")
 		Frame.__init__(self,master)
 		master.protocol('WM_DELETE_WINDOW',quit)
 		master.geometry("%dx%d+100+100"%(WIDTH,HEIGHT))
-		self.pack(fill="both",expand="true")
-		self.master.resizable(width="false",height="false")
+		self.pack(fill="both",expand=True)
+		self.master.resizable(width=False,height=False)
 		master.bind("<Key>",SnakeHead.keyPress)
 		self.loadContent()
 		self.after(DELAY,self.update)
@@ -42,7 +43,7 @@ class App(Frame):
 	def loadContent(self):
 		self.score=0
 		self.canvas=Canvas(self,bg="black")
-		self.canvas.pack(fill="both",expand="true")
+		self.canvas.pack(fill="both",expand=True)
 		self.snake=SnakeHead(self.canvas,5)
 		self.food=Food(self.snake,self.canvas)
 		return
@@ -62,8 +63,8 @@ class App(Frame):
 				self.endGame()
 				break
 
-		if(self.snake.x<0 or self.snake.x>RES or
-			self.snake.y<0 or self.snake.y>RES):	#out of bounds
+		if(self.snake.x<0 or self.snake.x>RES-1 or
+			self.snake.y<0 or self.snake.y>RES-1):	#out of bounds
 			self.endGame()
 			
 		if(self.snake.x==self.food.x and self.snake.y==self.food.y):	#the snake ate food
@@ -104,9 +105,9 @@ class Cell(object):
 		
 	def isOccupying(x,y):
 		if(x==self.getXPos(self.x) and y==self.getYPos(self.y)):
-			return "true"
+			return True
 		else:
-			return "false"
+			return False
 		
 class SnakeSegment(Cell):
 	def __init__(self,canvas,x,y):
@@ -124,7 +125,7 @@ class SnakeHead(SnakeSegment):
 		super(SnakeHead, self).__init__(canvas,self.x,self.y)
 		self.reset()
 		return
-		
+
 	def reset(self):
 		self.dir="none"
 		self.direction="none"
@@ -158,10 +159,9 @@ class SnakeHead(SnakeSegment):
 		if(self.direction=="right"):
 			dX=-1
 			dY=0
-			
-		
+
 		if(len(self.body)==0):
-			self.body+=[SnakeSegment(self.canvas,self.x+dX,self.y+dY)]
+			self.body+=[SnakeSegment(self.canvas,self.x+1,self.y)]
 		else:
 			self.body+=[SnakeSegment(self.canvas,
 				self.body[len(self.body)-1].x+dX,
@@ -193,7 +193,6 @@ class SnakeHead(SnakeSegment):
 			return
 
 	def keyPress(event):
-		#print(event.char)
 		if(event.char==KEY_UP and app.snake.direction!="down"):
 			app.snake.dir="up"
 		if(event.char==KEY_DOWN and app.snake.direction!="up"):
@@ -205,10 +204,12 @@ class SnakeHead(SnakeSegment):
 
 class Food(Cell):
 	def __init__(self,snake,canvas):
-		self.getCoords(snake)
+		self.x=0
+		self.y=0
 		self.canvas=canvas
 		self.consumption=0
 		super(Food, self).__init__(canvas,self.x,self.y)
+		self.reset(snake)
 		self.color="green"
 		canvas.itemconfig(self.rect,fill=self.color)
 		return
@@ -220,34 +221,27 @@ class Food(Cell):
 		return
 		
 	def reset(self,snake):
-		oldX=self.x
-		oldY=self.y
-		self.getCoords(snake)
-		x=self.x
-		y=self.y
-		self.move(self.x-oldX,self.y-oldY)
-		self.x=x
-		self.y=y
+		(x,y)=self.getCoords(snake)
+		self.move(x-self.x,y-self.y)
 		return
 		
 	def getCoords(self,snake):
 		unoccupied=True
 		while(True):
-			self.x=randint(0,RES)
-			self.y=randint(0,RES)
+			x=randint(0,RES-1)
+			y=randint(0,RES-1)
 			
-			if(snake.x==self.x and snake.y==self.y):
+			if(snake.x==x and snake.y==y):
 				unoccupied=False
 			
 			for a in range(0,len(snake.body)):
-				if(snake.body[a].x==self.x and snake.body[a].y==self.y):
+				if(snake.body[a].x==x and snake.body[a].y==y):
 					unoccupied=False
 					
 			if(unoccupied==True):
-				return
+				return (x,y)
 
 root=Tk()
 app=App(master=root)
-app.master.title("Snake")
 app.mainloop()
 app.destroy()
