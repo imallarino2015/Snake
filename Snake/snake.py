@@ -63,8 +63,8 @@ class App(Frame):
 				self.endGame()
 				break
 
-		if(self.snake.x<0 or self.snake.x>RES-1 or
-			self.snake.y<0 or self.snake.y>RES-1):	#out of bounds
+		if(self.snake.x<0 or self.snake.x>=RES or
+			self.snake.y<0 or self.snake.y>=RES):	#out of bounds
 			self.endGame()
 			
 		if(self.snake.isOccupying(self.food.x,self.food.y)):	#the snake ate food
