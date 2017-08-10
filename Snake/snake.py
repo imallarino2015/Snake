@@ -116,7 +116,7 @@ class SnakeSegment(Cell):
 class SnakeHead(SnakeSegment):
 	"""Front of the snake"""
 	def __init__(self,canvas,length):
-		""""""
+		"""Sets the snake to the middle of the field and initializes the body list of segments"""
 		self.x=RES/2
 		self.y=RES/2
 		self.body=[]
