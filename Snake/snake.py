@@ -35,7 +35,7 @@ class App(Frame):
 		master.geometry("%dx%d+100+100"%(WIDTH,HEIGHT))
 		self.pack(fill="both",expand=True)
 		self.master.resizable(width=False,height=False)
-		master.bind("<Key>",SnakeHead.keyPress)
+		master.bind("<Key>",keyPress)
 		self.loadContent()
 		self.after(DELAY,self.update)
 
@@ -169,16 +169,6 @@ class SnakeHead(SnakeSegment):
 		(dX,dY)=self.getChange()
 		self.move(dX,dY)
 
-	def keyPress(event):
-		if(event.char==KEY_UP and app.snake.direction!="down"):	#TODO: Find some way to clean up
-			app.snake.dir="up"
-		if(event.char==KEY_DOWN and app.snake.direction!="up"):
-			app.snake.dir="down"
-		if(event.char==KEY_LEFT and app.snake.direction!="right"):
-			app.snake.dir="left"
-		if(event.char==KEY_RIGHT and app.snake.direction!="left" and app.snake.direction!="none"):
-			app.snake.dir="right"
-
 class Food(Cell):
 	def __init__(self,snake,canvas):
 		(self.x,self.y)=self.getCoords(snake)
@@ -208,6 +198,16 @@ class Food(Cell):
 					
 			if(unoccupied==True):
 				return (x,y)
+				
+def keyPress(event):
+	if(event.char==KEY_UP and app.snake.direction!="down"):	#TODO: Find some way to clean up
+		app.snake.dir="up"
+	if(event.char==KEY_DOWN and app.snake.direction!="up"):
+		app.snake.dir="down"
+	if(event.char==KEY_LEFT and app.snake.direction!="right"):
+		app.snake.dir="left"
+	if(event.char==KEY_RIGHT and app.snake.direction!="left" and app.snake.direction!="none"):
+		app.snake.dir="right"
 
 root=Tk()
 app=App(master=root)
