@@ -38,7 +38,6 @@ class App(Frame):
 		master.bind("<Key>",SnakeHead.keyPress)
 		self.loadContent()
 		self.after(DELAY,self.update)
-		return
 
 	def loadContent(self):
 		self.score=0
@@ -46,13 +45,11 @@ class App(Frame):
 		self.canvas.pack(fill="both",expand=True)
 		self.snake=SnakeHead(self.canvas,5)
 		self.food=Food(self.snake,self.canvas)
-		return
 		
 	def endGame(self):
 		messagebox.showinfo("Game Over","Game Over\nYour score: %d"%(self.score))
 		self.snake.reset()
 		self.score=0
-		return
 	
 	def update(self):
 		self.snake.direction=self.snake.dir	#reduce the buffered inputs to the program's speed
@@ -68,13 +65,10 @@ class App(Frame):
 		if(self.snake.isOccupying(self.food.x,self.food.y)):	#the snake ate food
 			self.food.eat(self.snake)
 		
-		if(self.score==
-			(RES*RES)-self.snake.startLength-1):	#maximum length snake (win condition)
-			messagebox.showinfo("Congratulations",
-				"Congratulations, you win\nYour score: %d"%(self.score))
+		if(self.score==(RES*RES)-self.snake.startLength-1):	#maximum length snake (win condition)
+			messagebox.showinfo("Congratulations","Congratulations, you win\nYour score: %d"%(self.score))
 		
 		self.after(DELAY,self.update)	#call back the update function
-		return
 
 class Cell(object):
 	def __init__(self,canvas,x,y):
@@ -84,17 +78,14 @@ class Cell(object):
 		self.width=WIDTH/RES
 		(x,y)=self.getPos(x,y)
 		self.canvas=canvas
-		self.color="blue"
 		self.rect=canvas.create_rectangle(x,y,x+self.width,y+self.height)
-		canvas.itemconfig(self.rect,fill=self.color)
-		return
+		canvas.itemconfig(self.rect,fill="blue")
 		
 	def move(self,dX,dY):
 		self.x+=dX
 		self.y+=dY
 		(dX,dY)=self.getPos(dX,dY)
 		self.canvas.move(self.rect,dX,dY)
-		return
 		
 	def getPos(self,cellX,cellY):
 		return(cellX*(WIDTH/RES),cellY*(HEIGHT/RES))
@@ -108,9 +99,7 @@ class Cell(object):
 class SnakeSegment(Cell):
 	def __init__(self,canvas,x,y):
 		super(SnakeSegment, self).__init__(canvas,x,y)
-		self.color="white"
-		canvas.itemconfig(self.rect,fill=self.color)
-		return
+		canvas.itemconfig(self.rect,fill="white")
 
 class SnakeHead(SnakeSegment):
 	def __init__(self,canvas,length):
@@ -120,7 +109,6 @@ class SnakeHead(SnakeSegment):
 		self.startLength=length
 		super(SnakeHead, self).__init__(canvas,self.x,self.y)
 		self.reset()
-		return
 
 	def reset(self):
 		self.dir="none"
@@ -137,10 +125,10 @@ class SnakeHead(SnakeSegment):
 
 		while(len(self.body)<self.startLength):
 			self.grow()
-		
-		return
 	
 	def getChange(self):
+		if(self.direction=="none"):
+			return(0,0)
 		if(self.direction=="up"):
 			return(0,-1)
 		if(self.direction=="down"):
@@ -149,8 +137,6 @@ class SnakeHead(SnakeSegment):
 			return(-1,0)
 		if(self.direction=="right"):
 			return(1,0)
-		if(self.direction=="none"):
-			return(0,0)
 		
 	def grow(self):
 		if(self.direction=="none"):
@@ -162,9 +148,8 @@ class SnakeHead(SnakeSegment):
 					self.body[len(self.body)-1].y)]
 		else:
 			self.body+=[SnakeSegment(self.canvas,
-					self.body[len(self.body)-1].x,
-					self.body[len(self.body)-1].y)]
-		return
+				self.body[len(self.body)-1].x,
+				self.body[len(self.body)-1].y)]
 		
 	def bodyOccupies(self,x,y):
 		for a in range(0,len(self.body)-1):
@@ -178,8 +163,7 @@ class SnakeHead(SnakeSegment):
 				for a in range(0,len(self.body)-1):
 					self.body[len(self.body)-1-a].move(
 						self.body[len(self.body)-2-a].x-self.body[len(self.body)-1-a].x,
-						self.body[len(self.body)-2-a].y-self.body[len(self.body)-1-a].y
-					)
+						self.body[len(self.body)-2-a].y-self.body[len(self.body)-1-a].y)
 				self.body[0].move(self.x-self.body[0].x,self.y-self.body[0].y)
 
 		(dX,dY)=self.getChange()
@@ -200,20 +184,16 @@ class Food(Cell):
 		(self.x,self.y)=self.getCoords(snake)
 		self.canvas=canvas
 		super(Food, self).__init__(canvas,self.x,self.y)
-		self.color="green"
-		canvas.itemconfig(self.rect,fill=self.color)
-		return
+		canvas.itemconfig(self.rect,fill="green")
 		
 	def eat(self,snake):
 		app.score+=1
 		self.reset(snake)
 		snake.grow()
-		return
 		
 	def reset(self,snake):
 		(x,y)=self.getCoords(snake)
 		self.move(x-self.x,y-self.y)
-		return
 		
 	def getCoords(self,snake):
 		unoccupied=True
