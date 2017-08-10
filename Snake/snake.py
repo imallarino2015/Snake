@@ -177,8 +177,8 @@ class SnakeHead(SnakeSegment):
 			if(len(self.body)>0):
 				for a in range(0,len(self.body)-1):
 					self.body[len(self.body)-1-a].move(
-						self.body[len(self.body)-1-a-1].x-self.body[len(self.body)-1-a].x,
-						self.body[len(self.body)-1-a-1].y-self.body[len(self.body)-1-a].y
+						self.body[len(self.body)-2-a].x-self.body[len(self.body)-1-a].x,
+						self.body[len(self.body)-2-a].y-self.body[len(self.body)-1-a].y
 					)
 				self.body[0].move(self.x-self.body[0].x,self.y-self.body[0].y)
 
