@@ -107,7 +107,7 @@ class Cell(object):
 			return False
 
 class SnakeSegment(Cell):
-	"""A single part of the state"""
+	"""A single part of the snake"""
 	def __init__(self,canvas,x,y):
 		"""Creates a piece of the snake"""
 		super(SnakeSegment, self).__init__(canvas,x,y)
