@@ -139,29 +139,31 @@ class SnakeHead(SnakeSegment):
 			self.grow()
 		
 		return
+	
+	def getChange(self):
+		if(self.direction=="up"):
+			return(0,-1)
+		if(self.direction=="down"):
+			return(0,1)
+		if(self.direction=="left"):
+			return(-1,0)
+		if(self.direction=="right"):
+			return(1,0)
+		if(self.direction=="none"):
+			return(0,0)
 		
 	def grow(self):
-		dX=0
-		dY=0
-		if(self.direction=="up"):	#TODO: Find some way to clean up
-			dX=0
-			dY=1
-		if(self.direction=="down"):
-			dX=0
-			dY=-1
-		if(self.direction=="left" or self.direction=="none"):
-			dX=1
-			dY=0
-		if(self.direction=="right"):
-			dX=-1
-			dY=0
-
-		if(len(self.body)==0):
-			self.body+=[SnakeSegment(self.canvas,self.x+1,self.y)]
+		if(self.direction=="none"):
+			if(len(self.body)==0):
+				self.body+=[SnakeSegment(self.canvas,self.x+1,self.y)]
+			else:
+				self.body+=[SnakeSegment(self.canvas,
+					self.body[len(self.body)-1].x+1,
+					self.body[len(self.body)-1].y)]
 		else:
 			self.body+=[SnakeSegment(self.canvas,
-				self.body[len(self.body)-1].x+dX,
-				self.body[len(self.body)-1].y+dY)]
+					self.body[len(self.body)-1].x,
+					self.body[len(self.body)-1].y)]
 		return
 		
 	def bodyOccupies(self,x,y):
@@ -180,18 +182,8 @@ class SnakeHead(SnakeSegment):
 					)
 				self.body[0].move(self.x-self.body[0].x,self.y-self.body[0].y)
 
-		if(self.direction=="up"):	#TODO: Find some way to clean up
-			self.move(0,-1)
-			return
-		if(self.direction=="down"):
-			self.move(0,1)
-			return
-		if(self.direction=="left"):
-			self.move(-1,0)
-			return
-		if(self.direction=="right"):
-			self.move(1,0)
-			return
+		(dX,dY)=self.getChange()
+		self.move(dX,dY)
 
 	def keyPress(event):
 		if(event.char==KEY_UP and app.snake.direction!="down"):	#TODO: Find some way to clean up
