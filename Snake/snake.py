@@ -13,8 +13,7 @@ print("Snake")
 from random import *	#for spawning the food
 seed(a=None)
 
-from tkinter import *
-from tkinter import messagebox	#for the end-of-game message boxes
+import tkinter as tk
 
 DELAY=50
 WIDTH=640
@@ -26,13 +25,13 @@ KEY_LEFT='a'
 KEY_RIGHT='d'
 KEY_START=' '	#start is set to the spacebar
 
-class App(Frame):
+class App(tk.Frame):
 	"""Main window for the game"""
 	def __init__(self,master=None):
 		"""Opens a new window for the app"""
 		super(App,self).__init__()
 		self.master.title("Snake")
-		Frame.__init__(self,master)
+		tk.Frame.__init__(self,master)
 		master.protocol('WM_DELETE_WINDOW',quit)
 		master.geometry("%dx%d+100+100"%(WIDTH,HEIGHT))
 		self.pack(fill="both",expand=True)
@@ -44,14 +43,14 @@ class App(Frame):
 	def loadContent(self):
 		"""Generates the content that belongs in the window"""
 		self.score=0
-		self.canvas=Canvas(self,bg="black")
+		self.canvas=tk.Canvas(self,bg="black")
 		self.canvas.pack(fill="both",expand=True)
 		self.snake=SnakeHead(self.canvas,5)
 		self.food=Food(self.snake,self.canvas)
 
 	def endGame(self):
 		"""Shows the player their score and resets the game"""
-		messagebox.showinfo("Game Over","Game Over\nYour score: %d"%(self.score))
+		tk.messagebox.showinfo("Game Over","Game Over\nYour score: %d"%(self.score))
 		self.snake.reset()
 		self.score=0
 
@@ -71,7 +70,7 @@ class App(Frame):
 			self.food.eat(self.snake)
 		
 		if(self.score==(RES*RES)-self.snake.startLength-1):	#maximum length snake (win condition)
-			messagebox.showinfo("Congratulations","Congratulations, you win\nYour score: %d"%(self.score))
+			tk.messagebox.showinfo("Congratulations","Congratulations, you win\nYour score: %d"%(self.score))
 		
 		self.after(DELAY,self.update)	#call back the update function
 
@@ -234,7 +233,7 @@ def keyPress(event):
 	if(event.char==KEY_RIGHT and app.snake.direction!="left" and app.snake.direction!="none"):
 		app.snake.dir="right"
 
-root=Tk()
+root=tk.Tk()
 app=App(master=root)
 app.mainloop()
 app.destroy()
