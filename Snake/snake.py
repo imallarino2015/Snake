@@ -16,10 +16,10 @@ seed(a=None)
 from tkinter import *
 from tkinter import messagebox	#for the end-of-game message boxes
 
-DELAY=50
+DELAY=100
 WIDTH=640
 HEIGHT=480
-RES=100
+RES=50
 KEY_UP='w'
 KEY_DOWN='s'
 KEY_LEFT='a'
@@ -212,6 +212,7 @@ class Food(Cell):
 		"""Generates a random set of coordinates within the field and tests that it isn't occupied by the snake"""
 		unoccupied=True
 		while(True):
+			unoccupied=True
 			x=randint(0,RES-1)
 			y=randint(0,RES-1)
 			
