@@ -8,8 +8,6 @@
 ##########################################
 # -*- coding: utf-8 -*-
 
-print("Snake")
-
 from random import *	#for spawning the food
 seed(a=None)
 
