@@ -16,10 +16,10 @@ seed(a=None)
 from tkinter import *
 from tkinter import messagebox	#for the end-of-game message boxes
 
-DELAY=100
+DELAY=50
 WIDTH=640
 HEIGHT=480
-RES=50
+RES=100
 KEY_UP='w'
 KEY_DOWN='s'
 KEY_LEFT='a'
