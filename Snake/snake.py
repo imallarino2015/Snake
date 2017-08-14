@@ -210,7 +210,6 @@ class Food(Cell):
 
 	def getCoords(self,snake):
 		"""Generates a random set of coordinates within the field and tests that it isn't occupied by the snake"""
-		unoccupied=True
 		while(True):
 			unoccupied=True
 			x=randint(0,RES-1)
