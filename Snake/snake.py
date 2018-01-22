@@ -12,6 +12,7 @@ from random import *	#for spawning the food
 seed(a=None)
 
 import tkinter as tk
+import tkinter.messagebox
 
 DELAY=50
 WIDTH=640
@@ -102,6 +103,9 @@ class Cell(object):
 			return True
 		else:
 			return False
+	
+	def __del__(self):
+		self.canvas.delete(self.rect)
 
 class SnakeSegment(Cell):
 	"""A single part of the snake"""
@@ -126,10 +130,7 @@ class SnakeHead(SnakeSegment):
 		self.dir="none"
 		self.direction="none"
 		
-		if(len(self.body)>0):
-			for a in range(0,len(self.body)):
-				self.canvas.delete(self.body[len(self.body)-1].rect)
-				del self.body[len(self.body)-1]
+		del self.body[:]
 		
 		self.move(RES/2-self.x,RES/2-self.y)
 		self.x=RES/2
@@ -155,15 +156,15 @@ class SnakeHead(SnakeSegment):
 		"""Increases the size of the snake by one segment"""
 		if(self.direction=="none"):
 			if(len(self.body)==0):
-				self.body+=[SnakeSegment(self.canvas,self.x+1,self.y)]
+				self.body.extend([SnakeSegment(self.canvas,self.x+1,self.y)])
 			else:
-				self.body+=[SnakeSegment(self.canvas,
+				self.body.extend([SnakeSegment(self.canvas,
 					self.body[len(self.body)-1].x+1,
-					self.body[len(self.body)-1].y)]
+					self.body[len(self.body)-1].y)])
 		else:
-			self.body+=[SnakeSegment(self.canvas,
+			self.body.extend([SnakeSegment(self.canvas,
 				self.body[len(self.body)-1].x,
-				self.body[len(self.body)-1].y)]
+				self.body[len(self.body)-1].y)])
 
 	def bodyOccupies(self,x,y):
 		"""Checks if any part of the body lies on the given coordinates"""
