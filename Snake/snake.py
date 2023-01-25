@@ -10,7 +10,6 @@
 
 import random  # for spawning the food
 import tkinter as tk
-import tkinter.messagebox
 
 random.seed(a=None)
 
