@@ -12,67 +12,17 @@ import random  # for spawning the food
 import tkinter as tk
 import tkinter.messagebox
 
-random.seed(a=None)
 
-WIDTH, HEIGHT = 640, 480  # window size
-RES = 100
-KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT = 'e', 'd', 's', 'f'  # 'esdf' directional keys
-KEY_START = ' '     # start is set to the space bar
-
-
-class App(tk.Frame):
-    DELAY = 50
-    score = 0
-    canvas = None
-    snake = None
-    food = None
-
-    """Main window for the game"""
-    def __init__(self, master=None):
-        """Opens a new window for the app"""
-        super(App, self).__init__()
-        self.master.title("Snake")
-        tk.Frame.__init__(self, master)
-        master.protocol('WM_DELETE_WINDOW', quit)
-        master.geometry("%dx%d+100+100" % (WIDTH, HEIGHT))
-        self.pack(fill="both", expand=True)
-        self.master.resizable(width=False, height=False)
-        master.bind("<Key>", lambda key: key_press(self, key))
-        self.load_content()
-        self.after(self.DELAY, self.update)
-
-    def load_content(self):
-        """Generates the content that belongs in the window"""
-        self.score = 0
-        self.canvas = tk.Canvas(self, bg="black")
-        self.canvas.pack(fill="both", expand=True)
-        self.snake = SnakeHead(self, 5)
-        self.food = Food(self, self.snake, self.canvas)
-
-    def end_game(self):
-        """Shows the player their score and resets the game"""
-        tk.messagebox.showinfo("Game Over", f"Game Over\nYour score: {self.score}")
-        self.snake.reset()
-        self.score = 0
-
-    def update(self):
-        """Called continuously to move the snake and check for collisions"""
-        self.snake.direction = self.snake.direction_buffered  # reduce the buffered inputs to the program's speed
-        self.snake.move_snake()
-
-        if self.snake.body_occupies(self.snake.x, self.snake.y):  # the snake crossed itself
-            self.end_game()
-
-        if self.snake.x < 0 or self.snake.x >= RES or self.snake.y < 0 or self.snake.y >= RES:  # out of bounds
-            self.end_game()
-
-        if self.snake.is_occupying(self.food.x, self.food.y):  # the snake ate food
-            self.food.eat(self.snake)
-
-        if self.score == (RES*RES)-self.snake.startLength-1:  # maximum length snake (win condition)
-            tk.messagebox.showinfo("Congratulations", f"Congratulations, you win\nYour score: {self.score}")
-
-        self.after(self.DELAY, self.update)  # call back the update function
+def key_press(app, event):
+    """Event handler for the user's key presses"""
+    if event.char == KEY_UP and app.snake.direction != "down":  # TODO: Find some way to clean up
+        app.snake.direction_buffered = "up"
+    if event.char == KEY_DOWN and app.snake.direction != "up":
+        app.snake.direction_buffered = "down"
+    if event.char == KEY_LEFT and app.snake.direction != "right":
+        app.snake.direction_buffered = "left"
+    if event.char == KEY_RIGHT and app.snake.direction != "left" and app.snake.direction is not None:
+        app.snake.direction_buffered = "right"
 
 
 class Cell(object):
@@ -115,7 +65,7 @@ class SnakeSegment(Cell):
     """A single part of the snake"""
     def __init__(self, app, x, y):
         """Creates a piece of the snake"""
-        super(SnakeSegment, self).__init__(app, x, y)
+        super().__init__(app, x, y)
         app.canvas.itemconfig(self.rect, fill="white")
 
 
@@ -131,7 +81,7 @@ class SnakeHead(SnakeSegment):
         self.app = app
         self.body = []
         self.startLength = length
-        super(SnakeHead, self).__init__(self.app, self.x, self.y)
+        super().__init__(self.app, self.x, self.y)
         self.reset()
 
     def reset(self):
@@ -207,7 +157,7 @@ class Food(Cell):
         self.x, self.y = self.get_coords(snake)
         self.app = app
         self.canvas = canvas
-        super(Food, self).__init__(self.app, self.x, self.y)
+        super().__init__(self.app, self.x, self.y)
         canvas.itemconfig(self.rect, fill="green")
 
     def eat(self, snake):
@@ -238,24 +188,73 @@ class Food(Cell):
                 return x, y
 
 
-def key_press(app, event):
-    """Event handler for the user's key presses"""
-    if event.char == KEY_UP and app.snake.direction != "down":  # TODO: Find some way to clean up
-        app.snake.direction_buffered = "up"
-    if event.char == KEY_DOWN and app.snake.direction != "up":
-        app.snake.direction_buffered = "down"
-    if event.char == KEY_LEFT and app.snake.direction != "right":
-        app.snake.direction_buffered = "left"
-    if event.char == KEY_RIGHT and app.snake.direction != "left" and app.snake.direction is not None:
-        app.snake.direction_buffered = "right"
+class App(tk.Tk):
+    DELAY: int = 50
+    score: int = 0
+    canvas: tk.Canvas = None
+    snake: SnakeHead = None
+    food: Food = None
+
+    """Main window for the game"""
+    def __init__(self):
+        """Opens a new window for the app"""
+        super().__init__()
+        self.title("Snake")
+        self.protocol('WM_DELETE_WINDOW', quit)
+        self.geometry("%dx%d+100+100" % (WIDTH, HEIGHT))
+        self.resizable(width=False, height=False)
+
+        self.bind("<Key>", lambda key: key_press(self, key))
+        self.load_content()
+        self.after(self.DELAY, self.update)
+
+    def load_content(self):
+        """Generates the content that belongs in the window"""
+        self.score = 0
+        self.canvas = tk.Canvas(self, bg="#000000")
+        self.canvas.pack(fill="both", expand=True)
+        self.snake = SnakeHead(self, 5)
+        self.food = Food(self, self.snake, self.canvas)
+
+    def end_game(self):
+        """Shows the player their score and resets the game"""
+        tk.messagebox.showinfo("Game Over", f"Game Over\nYour score: {self.score}")
+        self.snake.reset()
+        self.score = 0
+
+    def update(self):
+        """Called continuously to move the snake and check for collisions"""
+        self.snake.direction = self.snake.direction_buffered  # reduce the buffered inputs to the program's speed
+        self.snake.move_snake()
+
+        if self.snake.body_occupies(self.snake.x, self.snake.y):  # the snake crossed itself
+            self.end_game()
+
+        if self.snake.x < 0 or self.snake.x >= RES or self.snake.y < 0 or self.snake.y >= RES:  # out of bounds
+            self.end_game()
+
+        if self.snake.is_occupying(self.food.x, self.food.y):  # the snake ate food
+            self.food.eat(self.snake)
+
+        if self.score == (RES*RES)-self.snake.startLength-1:  # maximum length snake (win condition)
+            tk.messagebox.showinfo("Congratulations", f"Congratulations, you win\nYour score: {self.score}")
+
+        self.after(self.DELAY, self.update)  # call back the update function
 
 
 def main():
-    root = tk.Tk()
-    app = App(master=root)
+    app = App()
     app.mainloop()
     app.destroy()
 
 
 if __name__ == "__main__":
+    random.seed(a=None)
+
+    WIDTH, HEIGHT = 640, 480  # window size
+    RES = 100
+
+    KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT = 'e', 'd', 's', 'f'  # 'esdf' directional keys
+    KEY_START = ' '     # start is set to the space bar
+
     main()
