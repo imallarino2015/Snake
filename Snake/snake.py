@@ -15,28 +15,28 @@ import tkinter.messagebox
 
 def key_press(app, event):
     """Event handler for the user's key presses"""
-    if event.char == KEY_UP and app.snake.direction != "down":  # TODO: Find some way to clean up
+    if event.char == Controls.KEY_UP and app.snake.direction != "down":  # TODO: Find some way to clean up
         app.snake.direction_buffered = "up"
-    if event.char == KEY_DOWN and app.snake.direction != "up":
+    if event.char == Controls.KEY_DOWN and app.snake.direction != "up":
         app.snake.direction_buffered = "down"
-    if event.char == KEY_LEFT and app.snake.direction != "right":
+    if event.char == Controls.KEY_LEFT and app.snake.direction != "right":
         app.snake.direction_buffered = "left"
-    if event.char == KEY_RIGHT and app.snake.direction != "left" and app.snake.direction is not None:
+    if event.char == Controls.KEY_RIGHT and app.snake.direction != "left" and app.snake.direction is not None:
         app.snake.direction_buffered = "right"
 
 
 class Cell(object):
     """Base class for a unit of space on the canvas"""
-    def __init__(self, app, x, y):
+    def __init__(self, app, x: int, y: int, fill_color: str | None = None):
         """Creates a single square on a pre-defined grid"""
-        self.x = x
-        self.y = y
-        self.height = HEIGHT/RES
-        self.width = WIDTH/RES
-        (x, y) = self.get_pos(x, y)
         self.app = app
+        self.x, self.y = x, y
+        self.height, self.width = self.app.height/self.app.resolution, self.app.width/self.app.resolution
+        (x, y) = self.get_pos(x, y)
         self.rect = self.app.canvas.create_rectangle(x, y, x+self.width, y+self.height)
-        self.app.canvas.itemconfig(self.rect, fill="blue")
+
+        if fill_color is not None:
+            self.app.canvas.itemconfig(self.rect, fill=fill_color)
 
     def move(self, d_x, d_y):
         """Moves rectangle the designated number of units"""
@@ -45,17 +45,13 @@ class Cell(object):
         (d_x, d_y) = self.get_pos(d_x, d_y)
         self.app.canvas.move(self.rect, d_x, d_y)
 
-    @staticmethod
-    def get_pos(cell_x, cell_y):
+    def get_pos(self, cell_x, cell_y):
         """Converts from the grid coordinates to the absolute number of pixels on the canvas"""
-        return cell_x * (WIDTH / RES), cell_y * (HEIGHT / RES)
+        return cell_x * self.width, cell_y * self.height
 
-    def is_occupying(self, x, y):  # TODO: Check that there isn't a better way to implement
+    def is_occupying(self, x, y):
         """Checks if the cell is occupying the given coordinates"""
-        if x == self.x and y == self.y:
-            return True
-        else:
-            return False
+        return x == self.x and y == self.y
 
     def __del__(self):
         self.app.canvas.delete(self.rect)
@@ -63,10 +59,9 @@ class Cell(object):
 
 class SnakeSegment(Cell):
     """A single part of the snake"""
-    def __init__(self, app, x, y):
+    def __init__(self, app, x: int | float, y: int | float):
         """Creates a piece of the snake"""
-        super().__init__(app, x, y)
-        app.canvas.itemconfig(self.rect, fill="white")
+        super().__init__(app, x, y, "#FFFFFF")
 
 
 class SnakeHead(SnakeSegment):
@@ -74,13 +69,13 @@ class SnakeHead(SnakeSegment):
     direction = None
 
     """Front of the snake"""
-    def __init__(self, app, length):
+    def __init__(self, app, start_length):
         """Sets the snake to the middle of the field and initializes the body list of segments"""
-        self.x = RES/2
-        self.y = RES/2
         self.app = app
+        self.x = self.app.resolution / 2
+        self.y = self.app.resolution / 2
         self.body = []
-        self.startLength = length
+        self.start_length = start_length
         super().__init__(self.app, self.x, self.y)
         self.reset()
 
@@ -91,11 +86,11 @@ class SnakeHead(SnakeSegment):
 
         del self.body[:]
 
-        self.move(RES/2-self.x, RES/2-self.y)
-        self.x = RES/2
-        self.y = RES/2
+        self.move(self.app.resolution/2-self.x, self.app.resolution/2-self.y)
+        self.x = self.app.resolution/2
+        self.y = self.app.resolution/2
 
-        while len(self.body) < self.startLength:
+        while len(self.body) < self.start_length:
             self.grow()
 
     def get_change(self):  # TODO: Add different multiples to scale up(?)
@@ -115,24 +110,16 @@ class SnakeHead(SnakeSegment):
         """Increases the size of the snake by one segment"""
         if self.direction is None:
             if len(self.body) == 0:
-                self.body.extend([SnakeSegment(self.app, self.x+1, self.y)])
+                self.body.append(SnakeSegment(self.app, self.x+1, self.y))
             else:
-                self.body.extend([SnakeSegment(
-                    self.app,
-                    self.body[len(self.body)-1].x+1,
-                    self.body[len(self.body)-1].y
-                )])
+                self.body.append(SnakeSegment(self.app, self.body[len(self.body)-1].x+1, self.body[len(self.body)-1].y))
         else:
-            self.body.extend([SnakeSegment(
-                self.app,
-                self.body[len(self.body)-1].x,
-                self.body[len(self.body)-1].y
-            )])
+            self.body.append(SnakeSegment(self.app, self.body[len(self.body)-1].x, self.body[len(self.body)-1].y))
 
     def body_occupies(self, x, y):
         """Checks if any part of the body lies on the given coordinates"""
-        for a in range(0, len(self.body)-1):
-            if self.body[a].is_occupying(x, y):
+        for body_part in self.body:
+            if body_part.is_occupying(x, y):
                 return True
         return False
 
@@ -143,7 +130,8 @@ class SnakeHead(SnakeSegment):
                 for a in range(0, len(self.body)-1):
                     self.body[len(self.body)-1-a].move(
                         self.body[len(self.body)-2-a].x-self.body[len(self.body)-1-a].x,
-                        self.body[len(self.body)-2-a].y-self.body[len(self.body)-1-a].y)
+                        self.body[len(self.body)-2-a].y-self.body[len(self.body)-1-a].y
+                    )
                 self.body[0].move(self.x-self.body[0].x, self.y-self.body[0].y)
 
         d_x, d_y = self.get_change()
@@ -152,40 +140,38 @@ class SnakeHead(SnakeSegment):
 
 class Food(Cell):
     """The items the player must collect to increase their snake's size and their score"""
-    def __init__(self, app, snake, canvas):
+    def __init__(self, app):
         """Creates a food item and sets it to a random location"""
-        self.x, self.y = self.get_coords(snake)
         self.app = app
-        self.canvas = canvas
-        super().__init__(self.app, self.x, self.y)
-        canvas.itemconfig(self.rect, fill="green")
+        self.x, self.y = self.get_coords()
+        super().__init__(self.app, self.x, self.y, "green")
 
-    def eat(self, snake):
+    def eat(self):
         """Removes the food, creates a new food, increases the player's score and increases the snake's size"""
         self.app.score += 1
-        self.reset(snake)
-        snake.grow()
+        self.reset()
+        self.app.snake.grow()
 
-    def reset(self, snake):
+    def reset(self):
         """Removes the food and creates food in a different location"""
-        x, y = self.get_coords(snake)
+        x, y = self.get_coords()
         self.move(x-self.x, y-self.y)
 
-    @staticmethod
-    def get_coords(snake):
+    def get_coords(self):
         """Generates a random set of coordinates within the field and tests that it isn't occupied by the snake"""
-        while True:
-            unoccupied = True
-            x = random.randint(0, RES-1)
-            y = random.randint(0, RES-1)
-
-            if snake.is_occupying(x, y):
-                unoccupied = False
-            if snake.body_occupies(x, y):
-                unoccupied = False
-
-            if unoccupied:
-                return x, y
+        valid = [
+            [
+                (x, y)
+                for y
+                in range(self.app.resolution)
+                if not self.app.snake.is_occupying(x, y)
+                and not self.app.snake.body_occupies(x, y)
+            ]
+            for x
+            in range(self.app.resolution)
+        ]
+        valid = sum(valid, [])
+        return random.choice(valid)
 
 
 class App(tk.Tk):
@@ -196,12 +182,16 @@ class App(tk.Tk):
     food: Food = None
 
     """Main window for the game"""
-    def __init__(self):
+    def __init__(self, width, height, grid_resolution):
         """Opens a new window for the app"""
         super().__init__()
+
+        self.width, self.height = width, height
+        self.resolution = grid_resolution
+
         self.title("Snake")
         self.protocol('WM_DELETE_WINDOW', quit)
-        self.geometry("%dx%d+100+100" % (WIDTH, HEIGHT))
+        self.geometry(f"{self.width}x{self.height}+100+100")
         self.resizable(width=False, height=False)
 
         self.bind("<Key>", lambda key: key_press(self, key))
@@ -214,7 +204,7 @@ class App(tk.Tk):
         self.canvas = tk.Canvas(self, bg="#000000")
         self.canvas.pack(fill="both", expand=True)
         self.snake = SnakeHead(self, 5)
-        self.food = Food(self, self.snake, self.canvas)
+        self.food = Food(self)
 
     def end_game(self):
         """Shows the player their score and resets the game"""
@@ -224,37 +214,43 @@ class App(tk.Tk):
 
     def update(self):
         """Called continuously to move the snake and check for collisions"""
+        # self.title(f"Snake - Score: {self.score}")
         self.snake.direction = self.snake.direction_buffered  # reduce the buffered inputs to the program's speed
         self.snake.move_snake()
 
         if self.snake.body_occupies(self.snake.x, self.snake.y):  # the snake crossed itself
             self.end_game()
 
-        if self.snake.x < 0 or self.snake.x >= RES or self.snake.y < 0 or self.snake.y >= RES:  # out of bounds
+        if (
+            self.snake.x < 0 or self.snake.x >= self.resolution
+                or self.snake.y < 0 or self.snake.y >= self.resolution
+        ):  # out of bounds
             self.end_game()
 
         if self.snake.is_occupying(self.food.x, self.food.y):  # the snake ate food
-            self.food.eat(self.snake)
+            self.food.eat()
 
-        if self.score == (RES*RES)-self.snake.startLength-1:  # maximum length snake (win condition)
-            tk.messagebox.showinfo("Congratulations", f"Congratulations, you win\nYour score: {self.score}")
+        if self.score == (self.resolution ** 2) - self.snake.start_length - 1:  # maximum length snake (win condition)
+            tk.messagebox.showinfo(
+                "Congratulations",
+                f"Congratulations, you win\nYour score: {self.score}"
+            )
 
         self.after(self.DELAY, self.update)  # call back the update function
 
 
+class Controls:
+    KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT = 'e', 'd', 's', 'f'  # 'esdf' directional keys
+    KEY_START = ' '  # start is set to the space bar
+
+
 def main():
-    app = App()
+    random.seed(a=None)
+
+    app = App(640, 480, 100)
     app.mainloop()
     app.destroy()
 
 
 if __name__ == "__main__":
-    random.seed(a=None)
-
-    WIDTH, HEIGHT = 640, 480  # window size
-    RES = 100
-
-    KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT = 'e', 'd', 's', 'f'  # 'esdf' directional keys
-    KEY_START = ' '     # start is set to the space bar
-
     main()
